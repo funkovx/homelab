@@ -62,8 +62,8 @@ chmod -R 755 /data
 
 ## Notes
 - **WebAdmin:** `http://<IP>:8080/web/admin` — here you create users.
-- **WebClient:** `http://<IP>:8080` — the UI from your screenshot.
-- **WebDAV:** `http://<IP>:10080` — for network drive mapping.
+- **WebClient:** `http://<IP>:8080` — the UI for users.
+- **WebDAV:** `http://<IP>:7777` — for network drive mapping.
 
 ---
 
