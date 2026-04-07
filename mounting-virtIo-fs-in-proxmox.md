@@ -1,70 +1,71 @@
-### 1. Подготовка на хосте Proxmox (Создание маппинга)
+# Mounting VirtIO-FS in Proxmox
 
-Сначала нужно объявить папку на уровне датацентра, чтобы Proxmox мог безопасно отдавать её виртуальным машинам.
+### 1. Preparation on the Proxmox Host (Creating a Mapping)
 
-1. Убедись, что папка физически существует на сервере (если нет, создай её в терминале хоста: `mkdir -p /mnt/pve/data/example_directory`).
-2. В веб-интерфейсе Proxmox выбери **Datacenter** (самый верхний уровень слева).
-3. Перейди в Directory Mappings.
-4. Нажми **Add**:
-    - **ID:** Придумай название (например, `example_directory_share_map`).
-    - **Path:** Укажи реальный путь на хосте (например, `/mnt/pve/data/example_directory`).
-    - Выбери нужную ноду (Node), на которой лежит папка.
+First, you need to declare a folder at the datacenter level so that Proxmox can safely share it with virtual machines.
 
----
-
-### 2. Настройка виртуальной машины (В панели Proxmox)
-
-ВМ должна быть **выключена**. Теперь нужно подключить созданный маппинг к конкретной ВМ. 
-
-1. **Включение NUMA (Обязательно):**
-    - Выбери свою ВМ -> **Hardware** -> **Processors** -> **Edit**.
-    - Установи галочку **NUMA: Yes** (в конфиге это добавит `numa: 1`).
-
-2. **Добавление VirtIO-FS:**
-    - В разделе **Hardware** нажми **Add** -> **Virtio FS**.
-    - **Directory:** Выбери созданный маппинг (`example_directory_share_map`).
-    - **Tag:** Задай имя диска для гостевой ОС (например, **`example_directory_data`**).  Вообще тега может не быть, тогда название маппинга нужно будет писать в fstab.
+1. Ensure the folder physically exists on the server (if not, create it in the host terminal: `mkdir -p /mnt/pve/data/example_directory`).
+2. In the Proxmox web interface, select **Datacenter** (the top level on the left).
+3. Navigate to Directory Mappings.
+4. Click **Add**:
+    - **ID:** Choose a name (for example, `example_directory_share_map`).
+    - **Path:** Specify the real path on the host (for example, `/mnt/pve/data/example_directory`).
+    - Select the required node (Node) where the folder is located.
 
 ---
 
-### 3. Монтирование внутри ВМ (Linux)
+### 2. Virtual Machine Configuration (In the Proxmox Panel)
 
-Подключись к консоли виртуальной машины.
+The VM must be **shut down**. Now you need to connect the created mapping to a specific VM.
 
-1. **Создай точку монтирования:**
+1. **Enable NUMA (Required):**
+    - Select your VM → **Hardware** → **Processors** → **Edit**.
+    - Check the **NUMA: Yes** option (this will add `numa: 1` to the config).
+
+2. **Add VirtIO-FS:**
+    - In the **Hardware** section, click **Add** → **Virtio FS**.
+    - **Directory:** Select the created mapping (`example_directory_share_map`).
+    - **Tag:** Assign a disk name for the guest OS (for example, **`example_directory_data`**). Note: the tag can be omitted, in which case the mapping name will be used.
+
+---
+
+### 3. Mounting Inside the VM (Linux)
+
+Connect to the virtual machine console.
+
+1. **Create a mount point:**
 
 ```bash
 sudo mkdir -p /mnt/example_directory
 ```
 
-2. **Настрой автозапуск монтирования:**
+2. **Configure automatic mounting:**
 
-Открой файл конфигурации:
+Open the configuration file:
 
 ```bash
 sudo nano /etc/fstab
 ```
 
-Добавь в конец строку (первое слово — это **Tag** или название маппинга):
+Add a line at the end (the first word is the **Tag** or mapping name):
 
 ```
 example_directory_share_map  /mnt/example_directory  virtiofs  defaults  0  0
 ```
 
-3. **Примени монтирование:**
+3. **Apply the mounting:**
 
 ```bash
 sudo mount -a
 ```
 
-
 ---
 
-### 4. Настройка прав доступа (В терминале хоста Proxmox)
+### 4. Configuring Access Permissions (In the Proxmox Host Terminal)
 
-По умолчанию проброшенная папка принадлежит `root`. Чтобы Docker-контейнеры внутри ВМ (работающие от пользователя с ID 1000) могли читать и записывать файлы, нужно отдать им права.
+By default, the shared folder belongs to `root`. To allow Docker containers inside the VM (running as a regular user) to access it, you need to change permissions.
 
-Выполни эти команды **в консоли самого Proxmox**:
+Run these commands **in the Proxmox console**:
 
 ```bash
 chown -R 1000:1000 /mnt/pve/data/example_directory
@@ -73,11 +74,11 @@ chmod -R 775 /mnt/pve/data/example_directory
 
 ---
 
-### Решение потенциальной проблемы
+### Troubleshooting a Potential Issue
 
-Команда `ls -ln /mnt/example_directory` внутри ВМ выдает `total 0` (папка пустая, хотя на хосте файлы есть).
+The command `ls -ln /mnt/example_directory` inside the VM returns `total 0` (the folder appears empty, even though files exist on the host).
 
-**Причины и решения:**
+**Causes and Solutions:**
 
-1. **Не применилась NUMA:** Выключи ВМ через Shutdown и запусти заново.
-2. **Опечатка в fstab:** Убедись, что слово `example_directory_data` в файле `/etc/fstab` посимвольно совпадает с полем **Tag** в настройках оборудования ВМ.
+1. **NUMA was not applied:** Shut down the VM via Shutdown and restart it.
+2. **Typo in fstab:** Make sure the word `example_directory_data` in the `/etc/fstab` file matches exactly (character by character) with the **Tag** field in the Proxmox settings.
