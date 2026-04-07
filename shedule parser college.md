@@ -8,7 +8,7 @@ source .venv/bin/activate
 pip install fastapi uvicorn icalendar pytz pyrinium
 ```
 
-### 2. Восстановление файлов
+### 2. Создание файла парсера
 
 Нужно создать файл `server.py`
 
@@ -54,4 +54,25 @@ systemctl status schedule-parser.service
 
 ---
 
-Если мало оперативки на сервере, то [[swap]]
+Если мало оперативки на сервере, то можно настроить swap
+
+```bash
+fallocate -l 2G /swapfile # Создание файла свап
+chmod 600 /swapfile # Права доступа (только для root)
+mkswap /swapfile # Разметка файла как swap
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab # Чтобы жил после перезагрузки
+```
+
+**Swappiness**
+
+Он определяет, насколько охотно система переносит данные из RAM в Swap.
+
+- **По умолчанию:** 60.
+- **Для серверов с малым объемом RAM:** Рекомендуется значение **10**. Это заставит систему использовать оперативную память до последнего, обращаясь к медленному диску только в критических ситуациях.
+
+```bash
+sysctl vm.swappiness=10 # Временная установка (до перезагрузки)
+echo 'vm.swappiness=10' >> /etc/sysctl.conf # Постоянная установка
+```
+
