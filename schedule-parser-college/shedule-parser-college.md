@@ -38,6 +38,7 @@ WorkingDirectory=/root
 ExecStart=/root/.venv/bin/python3 /root/.venv/bin/uvicorn server:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=5
+OOMScoreAdjust=-500 #Заставляет systemd не дропать службу если OOM
 
 [Install]
 WantedBy=multi-user.target
