@@ -48,7 +48,7 @@ sudo nano /etc/fstab
 Добавь в конец строку (первое слово — это **Tag** или название маппинга):
 
 ```
-immich_data  /mnt/example_directory  virtiofs  defaults  0  0
+example_directory_share_map  /mnt/example_directory  virtiofs  defaults  0  0
 ```
 
 3. **Примени монтирование:**
