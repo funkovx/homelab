@@ -13,7 +13,6 @@ apt update && apt install -y debian-archive-keyring gnupg apt-transport-https cu
 ## 2. Installation
 
 ```bash
-apt install -y wget
 wget https://github.com/drakkan/sftpgo/releases/download/v2.7.1/sftpgo_2.7.1-1_amd64.deb
 dpkg -i sftpgo_2.7.1-1_amd64.deb
 apt install -f -y
