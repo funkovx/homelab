@@ -33,7 +33,7 @@ A private, high-availability home laboratory focused on media self-hosting, moni
 
 ---
 
-**Glance dashboard**
+## Glance dashboard
 <img width="1512" height="828" alt="2026-04-09_20-29-32" src="https://github.com/user-attachments/assets/520a289f-2be0-4520-9e55-877cf1be3f77" />
 
 ---
