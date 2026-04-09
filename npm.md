@@ -2,6 +2,50 @@
 
 Technical documentation for exposing a home-lab behind a CGNAT (Gray IP) using a public VPS as a gateway.
 
+## Nginx Proxy Manager Installation (LXC/Docker)
+
+### Install Docker & Docker Compose
+
+If not already installed in your container:
+
+```bash
+apt update && apt install -y curl
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+```
+
+### Create Project Directory
+
+```bash
+mkdir -p ~/npm && cd ~/npm
+nano docker-compose.yml
+```
+
+### Docker Compose Configuration
+
+Paste the following configuration:
+
+```yaml
+version: '3.8'
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: always
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+```
+
+### Deploy NPM
+
+```bash
+docker compose up -d
+```
+
 ## Prerequisites: VPS Preparation (Gateway)
 
 ### 1. Enable IP Forwarding
