@@ -103,6 +103,8 @@ Replace `192.168.10.0/24` with your actual local network subnet:
 tailscale up --advertise-routes=192.168.10.0/24 --advertise-exit-node --reset
 ```
 
+After that, click on exit-node checkbox in tailscale admin panel and enable subnet.
+
 ---
 
 ## Notes
