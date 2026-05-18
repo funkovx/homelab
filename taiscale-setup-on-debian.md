@@ -41,7 +41,7 @@ echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.conf
 
 ```bash
 echo "nameserver 8.8.8.8" >> /etc/resolv.conf
-apt update && apt install -y iptables iptables-persistent
+apt update && apt install -y iptables iptables-persistent curl
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 netfilter-persistent save
 ```
