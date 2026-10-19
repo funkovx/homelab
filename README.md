@@ -35,6 +35,10 @@ A private, high-availability home laboratory focused on media self-hosting, moni
 
 ## 📸 Screenshots
 
+**Proxmox VE**: LXC containers and VMs for every service on a single node
+
+![Proxmox](docs/proxmox.png)
+
 **Glance dashboard** with live status checks for every service
 
 ![Glance dashboard](docs/glance.png)
