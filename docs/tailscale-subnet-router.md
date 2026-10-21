@@ -18,6 +18,8 @@ lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
 lxc.cap.drop:
 ```
 
+`lxc.cap.drop:` with an empty value keeps all capabilities in the container. Tailscale in an unprivileged LXC works without it in most cases, so try without this line first.
+
 ### 2. Set Permissions
 
 ```bash
@@ -58,16 +60,18 @@ ethtool -K eth0 rx-udp-gro-forwarding on rx-gro-list on 2>/dev/null
 
 ### Add Tailscale's GPG Key
 
+The guests run Debian 12 (bookworm); use `trixie` in both URLs on Debian 13.
+
 ```bash
 mkdir -p --mode=0755 /usr/share/keyrings
-curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg | 
+curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg |
   tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
 ```
 
 ### Add Tailscale Repository
 
 ```bash
-curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list | 
+curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list |
   tee /etc/apt/sources.list.d/tailscale.list
 ```
 

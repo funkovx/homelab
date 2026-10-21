@@ -1,0 +1,13 @@
+# Glance start page with live status checks. Runs in LXC "glance".
+# The running Glance predates this stack: a plain `docker run` with /opt/glance/glance.yml.
+# Before the first deploy from here, `docker rm -f glance` so port 8080 is free.
+name: glance
+
+services:
+  glance:
+    image: glanceapp/glance:v0.8.7
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./glance.yml:/app/config/glance.yml:ro

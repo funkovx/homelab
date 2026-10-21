@@ -1,0 +1,10 @@
+modules:
+  # Services on the LAN, many with self-signed certificates
+  http_lan:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: ip4
+      valid_status_codes: [200, 301, 302, 401, 403]
+      tls_config:
+        insecure_skip_verify: true

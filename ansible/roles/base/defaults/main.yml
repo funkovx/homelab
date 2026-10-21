@@ -1,0 +1,8 @@
+---
+base_packages:
+  - curl
+  - ca-certificates
+  - htop
+  - unattended-upgrades
+# Turn on only after key-based SSH login works for every user you need.
+base_ssh_hardening: false

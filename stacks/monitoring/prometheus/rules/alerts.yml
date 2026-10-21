@@ -1,0 +1,69 @@
+groups:
+  - name: availability
+    rules:
+      - alert: TargetDown
+        expr: up == 0
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.job }} target {{ $labels.instance }} is down"
+
+      - alert: ServiceDown
+        expr: probe_success == 0
+        for: 3m
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.instance }} is not answering"
+
+      - alert: GuestStopped
+        expr: pve_up{id=~"(lxc|qemu)/.*"} == 0 and on(id) pve_onboot_status == 1
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Guest {{ $labels.id }} starts on boot but is not running"
+
+  - name: resources
+    rules:
+      - alert: HostHighCpu
+        expr: 100 - avg by (host) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100 > 90
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "CPU on {{ $labels.host }} above 90% for 15 minutes"
+
+      - alert: HostLowMemory
+        expr: node_memory_MemAvailable_bytes{host="proxmox"} / node_memory_MemTotal_bytes{host="proxmox"} < 0.10
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Less than 10% memory available on the Proxmox host"
+
+      - alert: HostSwapping
+        expr: rate(node_vmstat_pswpout{host="proxmox"}[5m]) > 100
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "The Proxmox host is actively swapping"
+
+      - alert: GuestMemoryHigh
+        expr: pve_memory_usage_bytes{id=~"(lxc|qemu)/.*"} / pve_memory_size_bytes > 0.95
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $labels.id }} uses over 95% of its memory"
+
+      - alert: DiskAlmostFull
+        expr: |
+          node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs"}
+            / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs"} < 0.10
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $labels.mountpoint }} on {{ $labels.host }} is over 90% full"
+
+      - alert: GuestDiskAlmostFull
+        expr: pve_disk_usage_bytes{id=~"lxc/.*"} / pve_disk_size_bytes > 0.90
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "Root disk of {{ $labels.id }} is over 90% full"

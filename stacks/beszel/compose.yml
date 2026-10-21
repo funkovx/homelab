@@ -1,0 +1,12 @@
+# Beszel hub: quick resource overview of the Proxmox host and the public VPS.
+# Runs in the monitoring LXC; agents run on the machines themselves.
+name: beszel
+
+services:
+  beszel:
+    image: henrygd/beszel:0.21.0
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./beszel_data:/beszel_data

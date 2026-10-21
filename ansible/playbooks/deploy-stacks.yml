@@ -1,0 +1,64 @@
+---
+# Copies each host's compose projects from stacks/ to /opt/homelab/<name> and
+# brings them up. The real .env must already exist next to compose.yml.
+- name: Deploy Docker stacks
+  hosts: docker_hosts
+  vars:
+    stacks_root: /opt/homelab
+  tasks:
+    # The copy below takes the whole folder, so a local .env (git-ignored, often
+    # just a copy of .env.example) would overwrite the real secrets on the server
+    - name: Refuse to deploy a local .env
+      ansible.builtin.assert:
+        that: not ((playbook_dir ~ '/../../stacks/' ~ item ~ '/.env') is file)
+        fail_msg: "Remove stacks/{{ item }}/.env on this machine: it would replace the server's .env"
+        quiet: true
+      loop: "{{ compose_projects | default([]) }}"
+
+    - name: Copy stack files
+      register: stack_files
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../stacks/{{ item }}/"
+        dest: "{{ stacks_root }}/{{ item }}/"
+        owner: root
+        group: root
+        # Readable by everyone: containers like Grafana run as non-root users.
+        # Not "preserve", or a 0600 file from the laptop breaks them.
+        mode: u=rwX,g=rX,o=rX
+      loop: "{{ compose_projects | default([]) }}"
+
+    - name: Check that .env exists where the stack needs one
+      ansible.builtin.stat:
+        path: "{{ stacks_root }}/{{ item }}/.env"
+      loop: "{{ compose_projects | default([]) }}"
+      register: env_files
+
+    - name: Fail early on a missing .env
+      ansible.builtin.assert:
+        that: item.stat.exists or not ((playbook_dir ~ '/../../stacks/' ~ item.item ~ '/.env.example') is file)
+        fail_msg: "Create {{ stacks_root }}/{{ item.item }}/.env from .env.example first"
+        quiet: true
+      loop: "{{ env_files.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    # compose_files: {<stack>: [compose.yml, compose.vaapi.yml]} adds override files
+    - name: Start stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ stacks_root }}/{{ item }}"
+        files: "{{ (compose_files | default({}))[item] | default(omit) }}"
+        state: present
+        pull: missing
+      loop: "{{ compose_projects | default([]) }}"
+
+    # Config files are bind-mounted, so compose does not notice when they change
+    # A handler cannot restart only the stacks that changed, hence the per-item condition
+    - name: Restart stacks whose files changed  # noqa: no-handler
+      community.docker.docker_compose_v2:
+        project_src: "{{ stacks_root }}/{{ item.item }}"
+        files: "{{ (compose_files | default({}))[item.item] | default(omit) }}"
+        state: restarted
+      loop: "{{ stack_files.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when: item.changed

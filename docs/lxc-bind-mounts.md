@@ -11,6 +11,8 @@ chown -R 101000:101000 /mnt/pve/your_data
 chmod -R 775 /mnt/pve/your_data
 ```
 
+On this lab the data disk belongs to `100999:100996` (UID 999 / GID 996 inside the containers). For new folders on it, copy the existing owner instead of guessing: `chown -R --reference=/mnt/pve/data /mnt/pve/data/new_folder`.
+
 ## 2. Add Mount Point
 Run on the Proxmox host (replace `XXX` with your Container ID):
 ```bash
