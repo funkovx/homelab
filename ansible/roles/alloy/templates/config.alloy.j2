@@ -1,0 +1,81 @@
+// Managed by Ansible. Ships logs from {{ inventory_hostname }} to Loki.
+
+loki.write "default" {
+  endpoint {
+    url = "{{ loki_url }}"
+  }
+}
+
+// systemd journal: every service on the guest
+loki.relabel "journal" {
+  forward_to = []
+
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+  rule {
+    source_labels = ["__journal_priority_keyword"]
+    target_label  = "level"
+  }
+}
+
+loki.source.journal "system" {
+  max_age       = "12h"
+  relabel_rules = loki.relabel.journal.rules
+  labels        = { host = "{{ inventory_hostname }}", source = "journal" }
+  forward_to    = [loki.write.default.receiver]
+}
+{% if alloy_docker_logs %}
+
+// Docker containers
+discovery.docker "local" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.local.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  labels     = { host = "{{ inventory_hostname }}", source = "docker" }
+  forward_to = [loki.write.default.receiver]
+}
+{% endif %}
+{% if alloy_file_logs %}
+
+// Log files
+{% for f in alloy_file_logs %}
+{% set name = f.job | replace('-', '_') %}
+local.file_match "{{ name }}" {
+  path_targets = [{ "__path__" = "{{ f.path }}", host = "{{ inventory_hostname }}", job = "{{ f.job }}", source = "{{ f.format | default('file') }}" }]
+}
+
+loki.source.file "{{ name }}" {
+  targets    = local.file_match.{{ name }}.targets
+  forward_to = [loki.process.{{ name }}.receiver]
+}
+
+loki.process "{{ name }}" {
+{% if f.format | default('') == 'nginx' %}
+  // Use the time nginx wrote in the line, not the time Alloy read it
+  stage.regex {
+    expression = `\[(?P<ts>\d{2}/\w{3}/\d{4}:\d{2}:\d{2}:\d{2} [+-]\d{4})\]`
+  }
+  stage.timestamp {
+    source = "ts"
+    format = "02/Jan/2006:15:04:05 -0700"
+  }
+{% endif %}
+  forward_to = [loki.write.default.receiver]
+}
+{% endfor %}
+{% endif %}

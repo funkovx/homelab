@@ -1,0 +1,11 @@
+---
+# Installed from GitHub releases: apt.grafana.com refuses connections from some regions.
+alloy_version: "1.21.0"
+alloy_deb_sha256: d27431dbc2690ed7bc191e339fe4ee73a46973e203a5c50d7b69cafb6aa9ce84
+# Read container logs too when Docker is installed on the guest
+alloy_docker_logs: "{{ inventory_hostname in groups['docker_hosts'] | default([]) }}"
+# Plain log files to tail, e.g. nginx access logs:
+#   alloy_file_logs:
+#     - {path: /var/log/nginx/schedule.log, job: nginx-schedule, format: nginx}
+# format: nginx takes the timestamp from the log line itself
+alloy_file_logs: []

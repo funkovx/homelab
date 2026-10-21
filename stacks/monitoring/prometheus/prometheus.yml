@@ -1,0 +1,96 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: [localhost:9090]
+
+  - job_name: loki
+    static_configs:
+      - targets: [loki:3100]
+
+  - job_name: tempo
+    static_configs:
+      - targets: [tempo:3200]
+
+  # node-exporter on the Proxmox host and on every LXC (installed by Ansible).
+  # The VMs have none; pve-exporter covers them.
+  - job_name: node
+    static_configs:
+      - targets: [192.168.10.2:9100]
+        labels: {host: proxmox}
+      - targets: [192.168.10.3:9100]
+        labels: {host: glance}
+      - targets: [192.168.10.4:9100]
+        labels: {host: tailscale-router}
+      - targets: [192.168.10.6:9100]
+        labels: {host: smb}
+      - targets: [192.168.10.7:9100]
+        labels: {host: navidrome}
+      - targets: [192.168.10.11:9100]
+        labels: {host: pihole}
+      - targets: [192.168.10.13:9100]
+        labels: {host: immich}
+      - targets: [192.168.10.15:9100]
+        labels: {host: jellyfin}
+      - targets: [192.168.10.14:9100]
+        labels: {host: monitoring}
+
+  # Every LXC and VM through the Proxmox API
+  - job_name: proxmox
+    metrics_path: /pve
+    params:
+      module: [default]
+      cluster: ["1"]
+      node: ["1"]
+    static_configs:
+      - targets: [192.168.10.2]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: pve-exporter:9221
+
+  # Are the services answering? (LAN, self-signed certificates allowed)
+  - job_name: blackbox-lan
+    metrics_path: /probe
+    params:
+      module: [http_lan]
+    static_configs:
+      - targets:
+          - https://192.168.10.2:8006
+          - http://192.168.10.3:8080
+          - http://192.168.10.6:8080
+          - http://192.168.10.7:4533/ping
+          - https://192.168.10.11/admin/
+          - http://192.168.10.13:2283/api/server/ping
+          - http://192.168.10.15:8096/health
+          - http://192.168.10.14:8090
+    relabel_configs: &blackbox_relabel
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  # Public domains through the VPS: availability and certificate expiry.
+  # The list lives in targets/public.yml (git-ignored), see public.example.yml.
+  - job_name: blackbox-public
+    metrics_path: /probe
+    params:
+      module: [https_public]
+    file_sd_configs:
+      - files: [/etc/prometheus/targets/public.yml]
+    relabel_configs: *blackbox_relabel
+
+  - job_name: blackbox-exporter
+    static_configs:
+      - targets: [blackbox:9115]

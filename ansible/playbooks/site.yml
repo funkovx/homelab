@@ -1,0 +1,19 @@
+---
+- name: Baseline and metrics on every machine
+  hosts: proxmox:lxc
+  roles:
+    - base
+    - node_exporter
+
+- name: Docker on the guests that need it
+  hosts: docker_hosts
+  roles:
+    - docker
+
+- name: Log shipping to Loki
+  hosts: log_shippers
+  roles:
+    - alloy
+
+- name: Deploy stacks
+  ansible.builtin.import_playbook: deploy-stacks.yml

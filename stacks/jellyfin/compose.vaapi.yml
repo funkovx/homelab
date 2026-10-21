@@ -1,0 +1,8 @@
+# Optional: hardware video transcoding on the Ryzen iGPU (VA-API).
+# Needs /dev/dri passed into the LXC, see docs/jellyfin.md.
+#   docker compose -f compose.yml -f compose.vaapi.yml up -d
+# Then pick "VAAPI" under Dashboard -> Playback -> Transcoding.
+services:
+  jellyfin:
+    devices:
+      - /dev/dri:/dev/dri

@@ -1,0 +1,34 @@
+---
+- name: Download Alloy package
+  ansible.builtin.get_url:
+    url: "https://github.com/grafana/alloy/releases/download/v{{ alloy_version }}/alloy-{{ alloy_version }}-1.amd64.deb"
+    dest: "/tmp/alloy-{{ alloy_version }}.deb"
+    checksum: "sha256:{{ alloy_deb_sha256 }}"
+    mode: "0644"
+
+- name: Install Alloy
+  ansible.builtin.apt:
+    deb: "/tmp/alloy-{{ alloy_version }}.deb"
+    state: present
+
+- name: Let Alloy read the journal, the Docker socket and log files
+  ansible.builtin.user:
+    name: alloy
+    groups: "{{ ['systemd-journal'] + (['docker'] if alloy_docker_logs else []) + (['adm'] if alloy_file_logs else []) }}"
+    append: true
+  notify: Restart alloy
+
+- name: Write Alloy config
+  ansible.builtin.template:
+    src: config.alloy.j2
+    dest: /etc/alloy/config.alloy
+    owner: root
+    group: alloy
+    mode: "0640"
+  notify: Restart alloy
+
+- name: Enable Alloy
+  ansible.builtin.service:
+    name: alloy
+    state: started
+    enabled: true

@@ -1,0 +1,18 @@
+# Jellyfin media server. Runs in the jellyfin LXC (192.168.10.15).
+# Config, metadata and the transcode cache live next to this file on the LXC
+# rootfs (SSD). Films and series stay on the host data disk (HDD) and are
+# bind-mounted into the LXC at /mnt/media (see docs/jellyfin.md), read-only.
+name: jellyfin
+
+services:
+  jellyfin:
+    container_name: jellyfin
+    image: docker.io/jellyfin/jellyfin:12.2
+    volumes:
+      - ./config:/config
+      - ./cache:/cache
+      - /mnt/media:/media:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "8096:8096"
+    restart: unless-stopped

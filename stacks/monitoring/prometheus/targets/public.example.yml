@@ -1,0 +1,4 @@
+# Copy to public.yml and list your public URLs. public.yml is git-ignored.
+- targets:
+    - https://photos.example.com
+    - https://music.example.com

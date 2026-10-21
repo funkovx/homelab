@@ -1,0 +1,65 @@
+# Copy to hosts.yml (git-ignored) and adjust users and addresses.
+all:
+  vars:
+    timezone: Europe/Moscow
+    loki_url: http://192.168.10.14:3100/loki/api/v1/push
+  children:
+    proxmox:
+      hosts:
+        pve:
+          ansible_host: 192.168.10.2
+          ansible_user: root
+
+    lxc:
+      vars:
+        ansible_user: root
+      hosts:
+        glance:
+          ansible_host: 192.168.10.3
+          compose_projects: [glance]
+        tailscale-router:
+          ansible_host: 192.168.10.4
+        smb:
+          ansible_host: 192.168.10.6
+        navidrome:
+          ansible_host: 192.168.10.7
+        pihole:
+          ansible_host: 192.168.10.11
+        immich:
+          ansible_host: 192.168.10.13
+          compose_projects: [immich]
+          compose_files: {immich: [compose.yml, compose.vaapi.yml]}
+        jellyfin:
+          ansible_host: 192.168.10.15
+          compose_projects: [jellyfin]
+          compose_files: {jellyfin: [compose.yml, compose.vaapi.yml]}
+        monitoring:
+          ansible_host: 192.168.10.14
+          compose_projects: [monitoring, beszel]
+
+    # Machines outside the lab, reached over Tailscale
+    external:
+      hosts:
+        vps:
+          ansible_host: vps.example.com
+          ansible_user: root
+          alloy_file_logs:
+            - {path: /var/log/nginx/schedule.log, job: nginx-schedule, format: nginx}
+
+    # Guests that run Docker
+    docker_hosts:
+      hosts:
+        glance:
+        immich:
+        jellyfin:
+        monitoring:
+
+    # Guests that ship logs to Loki. Alloy needs ~60-100 MB of RAM, so the
+    # smallest single-service containers rely on metrics and probes instead.
+    log_shippers:
+      hosts:
+        vps:
+        pve:
+        glance:
+        immich:
+        monitoring:
