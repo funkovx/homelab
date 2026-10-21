@@ -15,13 +15,6 @@ groups:
         annotations:
           summary: "{{ $labels.instance }} is not answering"
 
-      - alert: CertificateExpiresSoon
-        expr: (probe_ssl_earliest_cert_expiry{job="blackbox-public"} - time()) / 86400 < 14
-        for: 1h
-        labels: {severity: warning}
-        annotations:
-          summary: "Certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days"
-
       - alert: GuestStopped
         expr: pve_up{id=~"(lxc|qemu)/.*"} == 0 and on(id) pve_onboot_status == 1
         for: 5m

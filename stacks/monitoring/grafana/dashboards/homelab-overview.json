@@ -1,6 +1,6 @@
 {
   "uid": "homelab-overview",
-  "title": "Disk I/O",
+  "title": "Homelab overview",
   "tags": [
     "homelab"
   ],
@@ -336,7 +336,7 @@
       "gridPos": {
         "x": 0,
         "y": 6,
-        "w": 16,
+        "w": 24,
         "h": 6
       },
       "targets": [
@@ -377,65 +377,6 @@
               {
                 "color": "green",
                 "value": 1
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "value_and_name"
-      }
-    },
-    {
-      "id": 10,
-      "title": "Certificate expires in",
-      "type": "stat",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 16,
-        "y": 6,
-        "w": 8,
-        "h": 6
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "(probe_ssl_earliest_cert_expiry{job=\"blackbox-public\"} - time()) / 86400",
-          "refId": "A",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "d",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 14
-              },
-              {
-                "color": "green",
-                "value": 30
               }
             ]
           }

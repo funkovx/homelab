@@ -17,3 +17,30 @@
 
 - name: Deploy stacks
   ansible.builtin.import_playbook: deploy-stacks.yml
+
+# TMDB hides its servers from resolvers in Russia; see stacks/jellyfin/tmdb-hosts.sh
+- name: Keep TMDB reachable for Jellyfin
+  hosts: jellyfin
+  tasks:
+    - name: Install the TMDB timer
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../stacks/jellyfin/{{ item }}"
+        dest: "/etc/systemd/system/{{ item }}"
+        owner: root
+        group: root
+        mode: "0644"
+      loop: [tmdb-hosts.service, tmdb-hosts.timer]
+      notify: Pin TMDB addresses now
+
+    - name: Enable the TMDB timer
+      ansible.builtin.systemd_service:
+        name: tmdb-hosts.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+
+  handlers:
+    - name: Pin TMDB addresses now
+      ansible.builtin.systemd_service:
+        name: tmdb-hosts.service
+        state: started

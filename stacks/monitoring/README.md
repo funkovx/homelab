@@ -23,7 +23,7 @@ flowchart LR
 | Prometheus | Scrapes every 30 s, keeps 15 days, evaluates the [alert rules](prometheus/rules/alerts.yml) |
 | pve-exporter | Status, CPU, memory, disk and network of every LXC and VM through the Proxmox API |
 | node-exporter | Host-level metrics on the Proxmox node and inside each LXC (installed by Ansible) |
-| blackbox-exporter | HTTP checks of every service on the LAN; availability and certificate expiry of the public domains |
+| blackbox-exporter | HTTP checks of every service on the LAN |
 | Loki | Logs from the systemd journal and Docker, shipped by Grafana Alloy, kept 14 days |
 | Grafana | Provisioned dashboards: **Homelab overview**, **Logs** and **Schedule parser** (nginx logs of the public VPS) |
 
@@ -54,8 +54,7 @@ Every container has a memory limit, since the whole host has 10 GB.
 
    ```bash
    cd /opt/homelab/monitoring
-   cp .env.example .env                                                  # token and Grafana password
-   cp prometheus/targets/public.example.yml prometheus/targets/public.yml # public URLs
+   cp .env.example .env   # token and Grafana password
    ```
 
    Then run the playbook again: `ansible-playbook playbooks/site.yml --limit monitoring`.
@@ -68,7 +67,6 @@ Grafana is on `:3000`, Prometheus on `:9090`. The dashboards are under **Homelab
 | --- | --- |
 | TargetDown | A scrape target is unreachable for 5 minutes |
 | ServiceDown | A service stops answering HTTP checks for 3 minutes |
-| CertificateExpiresSoon | A public certificate expires in less than 14 days |
 | GuestStopped | A guest marked "start on boot" is not running |
 | HostHighCpu | CPU stays above 90% for 15 minutes |
 | HostLowMemory | Less than 10% of the host memory is available |

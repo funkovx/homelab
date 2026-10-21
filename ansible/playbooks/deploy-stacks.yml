@@ -6,6 +6,15 @@
   vars:
     stacks_root: /opt/homelab
   tasks:
+    # The copy below takes the whole folder, so a local .env (git-ignored, often
+    # just a copy of .env.example) would overwrite the real secrets on the server
+    - name: Refuse to deploy a local .env
+      ansible.builtin.assert:
+        that: not ((playbook_dir ~ '/../../stacks/' ~ item ~ '/.env') is file)
+        fail_msg: "Remove stacks/{{ item }}/.env on this machine: it would replace the server's .env"
+        quiet: true
+      loop: "{{ compose_projects | default([]) }}"
+
     - name: Copy stack files
       register: stack_files
       ansible.builtin.copy:
@@ -13,7 +22,9 @@
         dest: "{{ stacks_root }}/{{ item }}/"
         owner: root
         group: root
-        mode: preserve
+        # Readable by everyone: containers like Grafana run as non-root users.
+        # Not "preserve", or a 0600 file from the laptop breaks them.
+        mode: u=rwX,g=rX,o=rX
       loop: "{{ compose_projects | default([]) }}"
 
     - name: Check that .env exists where the stack needs one

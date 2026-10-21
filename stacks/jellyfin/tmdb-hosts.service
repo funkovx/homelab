@@ -1,0 +1,9 @@
+[Unit]
+Description=Pin TMDB addresses for Jellyfin
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+# Through bash: deploy-stacks.yml copies stack files without the exec bit
+ExecStart=/bin/bash /opt/homelab/jellyfin/tmdb-hosts.sh

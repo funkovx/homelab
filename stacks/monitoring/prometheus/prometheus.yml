@@ -73,23 +73,13 @@ scrape_configs:
           - http://192.168.10.13:2283/api/server/ping
           - http://192.168.10.15:8096/health
           - http://192.168.10.14:8090
-    relabel_configs: &blackbox_relabel
+    relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
         replacement: blackbox:9115
-
-  # Public domains through the VPS: availability and certificate expiry.
-  # The list lives in targets/public.yml (git-ignored), see public.example.yml.
-  - job_name: blackbox-public
-    metrics_path: /probe
-    params:
-      module: [https_public]
-    file_sd_configs:
-      - files: [/etc/prometheus/targets/public.yml]
-    relabel_configs: *blackbox_relabel
 
   - job_name: blackbox-exporter
     static_configs:

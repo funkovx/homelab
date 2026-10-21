@@ -11,4 +11,3 @@ stacks/jellyfin/cache/
 .obsidian/
 .vscode/
 .DS_Store
-stacks/monitoring/prometheus/targets/public.yml

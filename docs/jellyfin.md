@@ -2,6 +2,8 @@
 
 Jellyfin serves the films and series on the host data disk to the browser, the TV and phones. It gets its own unprivileged LXC like the other services; the media folder is bind-mounted read-only, so Jellyfin cannot damage the files.
 
+![Jellyfin](img/jellyfin.webp)
+
 Storage is split by disk:
 
 | What | Where | Disk |
@@ -94,7 +96,24 @@ done
 
 After changing files, run *Dashboard → Libraries → Scan all libraries*.
 
-## 6. Check
+## 6. Metadata and artwork from TMDB
+
+Posters, backdrops and episode descriptions come from TMDB. Its DNS answers every resolver in Russia with `127.0.0.1`, so out of the box the library stays bare; the servers themselves are reachable. The site playbook works around it without touching the LAN DNS:
+
+- [`tmdb-hosts.sh`](../stacks/jellyfin/tmdb-hosts.sh) asks Google DNS for the addresses clients in other countries get (`edns_client_subnet`) and writes them to `/opt/homelab/jellyfin/.env`. Most `image.tmdb.org` edges are throttled by the ISP (the headers arrive, the picture never does), so it downloads a test poster through each candidate and keeps the first one that delivers it;
+- `compose.yml` puts them in the container's `/etc/hosts` through `extra_hosts`;
+- `tmdb-hosts.timer` reruns it daily and recreates Jellyfin only when an address changed.
+
+Check from the LXC:
+
+```bash
+cat /opt/homelab/jellyfin/.env
+docker exec jellyfin curl -s -o /dev/null -w '%{http_code}\n' https://api.themoviedb.org/3/configuration   # 401 = reachable
+```
+
+Then fetch the artwork once: on the series, *⋯ → Refresh metadata → Replace all metadata* with *Replace existing images*.
+
+## 7. Check
 
 - Play an episode in the browser and on the TV, switch the audio track mid-episode.
 - With VA-API on, start a transcode (pick a lower quality) and see `VAAPI` in *Dashboard → Activity*.

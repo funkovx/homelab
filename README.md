@@ -8,7 +8,7 @@
 
 My self-hosted infrastructure on a single mini PC (Ryzen 5 PRO 2400GE, 10 GB RAM) running Proxmox VE: photo backup, music streaming, a media server, file sharing, DNS filtering, and monitoring with metrics, service checks and logs. Every service runs in its own unprivileged LXC, reachable from anywhere over Tailscale. Docker stacks and guest configuration are kept here as code; the parts configured by hand are written up in [`docs/`](docs).
 
-![Proxmox](docs/img/proxmox.png)
+![Proxmox](docs/img/proxmox.webp)
 
 ## Architecture
 
@@ -54,14 +54,20 @@ The home network sits behind CGNAT and nothing is published to the internet. My 
 
 The LXC containers are unprivileged Debian 12. Stopped experiments (108 langflow, 110 tests) are left out. Immich moved from its VM into an LXC, which frees about 4 GB of RAM ([how](docs/immich-vm-to-lxc.md)).
 
+![Jellyfin](docs/img/jellyfin.webp)
+
 ## Monitoring
 
 - **Metrics:** node-exporter on the host and in every LXC, plus pve-exporter for the status and usage of each guest through the Proxmox API.
-- **Service checks:** blackbox-exporter makes HTTP requests to every service on the LAN and to the public domains, and tracks certificate expiry.
+- **Service checks:** blackbox-exporter makes HTTP requests to every service on the LAN.
 - **Logs:** Grafana Alloy ships the systemd journal and Docker logs to Loki.
-- **Alerts:** down targets and services, expiring certificates, stopped guests, memory pressure and swapping, full disks.
+- **Alerts:** down targets and services, stopped guests, memory pressure and swapping, full disks.
 
 Grafana loads its data sources and dashboards from this repository. Details in [`stacks/monitoring`](stacks/monitoring).
+
+![Grafana overview](docs/img/grafana-overview.webp)
+
+![Grafana logs](docs/img/grafana-logs.webp)
 
 ## Repository layout
 
@@ -83,4 +89,4 @@ Secrets never enter the repository: each stack ships a `.env.example`, real `.en
 - [Sharing a host folder with a VM over VirtIO-FS](docs/virtiofs.md)
 - [SFTPGo with WebDAV](docs/sftpgo-webdav.md)
 
-![Glance](docs/img/glance.png)
+![Glance](docs/img/glance.webp)
