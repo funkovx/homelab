@@ -18,12 +18,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Validate every compose file
+      - name: Validate Compose projects and VA-API overrides
         run: |
           for f in stacks/*/compose.yml; do
             dir=$(dirname "$f")
             [ -f "$dir/.env.example" ] && cp "$dir/.env.example" "$dir/.env"
-            echo "::group::$f"; docker compose -f "$f" config --quiet; echo "::endgroup::"
+            echo "::group::$f"
+            docker compose -f "$f" config --quiet
+            if [ -f "$dir/compose.vaapi.yml" ]; then
+              docker compose -f "$f" -f "$dir/compose.vaapi.yml" config --quiet
+            fi
+            echo "::endgroup::"
           done
 
   prometheus:
