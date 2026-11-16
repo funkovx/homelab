@@ -47,7 +47,6 @@ The home network sits behind CGNAT and nothing is published to the internet. My 
 | 106 | LXC | pihole | 1 vCPU · 512 MB | Pi-hole with unbound as a recursive resolver |
 | 107 | LXC | minecraft | 4 vCPU · 5.5 GB | Minecraft server, usually stopped; rootfs on the HDD |
 | 109 | VM | astra | 2 vCPU · 4 GB | Astra Linux VM |
-| 111 | LXC | lab-worker | 2 vCPU · 4 GB | Worker for my Telegram bot |
 | 112 | LXC | monitoring | 2 vCPU · 2 GB | [Prometheus, Grafana, Loki, Tempo](stacks/monitoring) and the [Beszel](stacks/beszel) hub |
 | 113 | LXC | immich | 4 vCPU · 4 GB | [Immich](stacks/immich) photo backup, VA-API transcoding on the iGPU |
 | 114 | LXC | jellyfin | 2 vCPU · 1.5 GB | [Jellyfin](stacks/jellyfin) films and series, VA-API transcoding on the iGPU |
